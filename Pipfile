@@ -1,0 +1,19 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+flask = "*"
+flask-sqlalchemy = "*"
+flask-migrate = "*"
+psycopg2-binary = "*"
+python-dotenv = "*"
+pandas = "*"
+office365-rest-python-client = "*"
+office365 = "*"
+
+[dev-packages]
+
+[requires]
+python_version = "3.12"
