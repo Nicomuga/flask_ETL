@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from office365.sharepoint.client_context import ClientContext
 from office365.runtime.auth.user_credential import UserCredential
-from office365.sharepoint.files import file
+from office365.sharepoint.files import *
 from dotenv import load_dotenv
 
 # Cargar las variables de entorno
