@@ -2,6 +2,7 @@ from flask import Blueprint, jsonify, Flask
 from . import db
 from .models import DataEntry
 from .sharepoint import fetch_data_from_sharepoint
+from .drive import fetch_data_from_google_drive
 
 
 
@@ -15,7 +16,8 @@ def index():
 
 @main.route('/fetch', methods=['GET'])
 def fetch_data():
-    data = fetch_data_from_sharepoint()
+    
+    data = fetch_data_from_google_drive()
 
     # Guardar los datos en la base de datos
     for index, row in data.iterrows():
@@ -28,7 +30,7 @@ def fetch_data():
             responsable=row.get("RESPONSABLE"),
             razon=row.get("RAZON"),
             comentarios=row.get("COMENTARIOS"),
-            origen=row["ORIGEN"]
+            file=row["FILE"]
         )
         db.session.add(entry)
     db.session.commit()
