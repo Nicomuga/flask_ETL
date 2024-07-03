@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, Flask
 from . import db
 from .models import DataEntry
-from .sharepoint import fetch_data_from_sharepoint
+# from .sharepoint import fetch_data_from_sharepoint
 from .drive import fetch_data_from_google_drive
 
 

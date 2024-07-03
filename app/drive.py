@@ -41,6 +41,7 @@ def normalize_value(value):
 def normalize_dataframe(df):
     for col in df.columns:
         df[col] = df[col].apply(normalize_value)
+    df = df.where(pd.notna(df), None)
     return df
 
 
@@ -186,7 +187,7 @@ def process_sheet(fh, sheet_name, file_name, required_columns, optional_columns,
         # print(df)
         normalize_dataframe(df)
         df = df[df['ESTADO_OK/NOK'] == 'NOK']
-        print(f'Archivo {file_name} leído exitosamente DESDE NOK')
+        print(f'Archivo {file_name} leído exitosamente DESDE {sheet_name}')
         print(f'contiene {len(df)} entradas')
         print('-+*-+-*-+-*-+-*-+-*-+-*-+-*-+-*-*-+-*-+-**-+-')
         # print(f'DF FINAL DEL ARCHIVO {file_name}+++++++++++++++++++++++++++++++++++')

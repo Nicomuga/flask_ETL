@@ -15,4 +15,6 @@ def create_app():
     from .views import main as main_blueprint
     app.register_blueprint(main_blueprint)
 
+    
+
     return app
