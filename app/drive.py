@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from unidecode import unidecode
 import gc
 
+
 # Cargar las variables de entorno
 load_dotenv()
 
@@ -21,6 +22,17 @@ folder_id = os.getenv('GOOGLE_DRIVE_FOLDER_ID')
 #     normalized = name.strip().upper()
 #     normalized = normalized.replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U")
 #     return normalized
+def prep_df(data):
+    required_columns = ["RESPONSABLE", "RAZON", "COMENTARIOS"]
+    for column in required_columns:
+        if column not in data.columns:
+            data[column] = None 
+            
+    for column in data.columns:
+        data[column] = data[column].apply(lambda x: str(x) if x is not None else None)
+         # Agregar la columna con valores None
+    return data
+
 
 def count_unnamed_columns(columns):
     return sum([1 for col in columns if 'Unnamed' in col])
@@ -63,7 +75,7 @@ def fetch_data_from_google_drive():
     print(folders)
     re_columns = [
                     "FOLIO RECEPCION", "CAMPO CON ERROR", "DEBE DECIR OTROS CAMPOS", 
-                    "FALTA SACAR DEDUCIBLE", "SACO DEDUCIBLE ERRONEO (NO DEDUCIBLE)", "ESTADO OK/NOK"]
+                    "FALTA SACAR DEDUCIBLE", "SACO DEDUCIBLE ERRONEO (NO DEDUCIBLE)", "ESTADO OK/NOK", "MES"]
     op_columns = ["RESPONSABLE", "RAZON", "COMENTARIOS"]
     required_columns = [normalize_column_name(col) for col in re_columns]
     optional_columns = [normalize_column_name(col) for col in op_columns]
@@ -133,14 +145,22 @@ def fetch_data_from_google_drive():
     print(f'Se han contado un total de {counted_entrys} entradas')
     final_df = normalize_dataframe(final_df)
     print(final_df)
-    breakpoint()
-    return final_df
+    monto_error = final_df[final_df["CAMPO_CON_ERROR"].str.contains('MONTO')]
+    otros_campos = final_df[final_df["CAMPO_CON_ERROR"].str.contains('/')]
+
+    monto_error = prep_df(monto_error)
+    otros_campos = prep_df(otros_campos)
+    # column_types = final_df.dtypes
+    # print(column_types)
+    # breakpoint()
+    return monto_error, otros_campos
 
 def process_sheet(fh, sheet_name, file_name, required_columns, optional_columns, usecols):    
+    
+    
     try:
-        
-        df = pd.DataFrame(pd.ExcelFile(fh).parse(sheet_name, usecols=usecols))
         print(f'PROCESANDO DF ORIGINAL DESDE {sheet_name}++++++++++++++++')
+        df = pd.DataFrame(pd.ExcelFile(fh).parse(sheet_name, usecols=usecols))
         unnamed_count = count_unnamed_columns(df.columns)
         try_counter = 0
         while unnamed_count > 3:
@@ -167,7 +187,19 @@ def process_sheet(fh, sheet_name, file_name, required_columns, optional_columns,
             # TODO agregar una nueva base de datos donde se registren los errores de carga de archivos
             pass
     # breakpoint()
+
+    # if theres a sum at the end of the df it will be dropped 
+    while not df.empty and df.iloc[-1].isna().sum() > 4:
+        if df.iloc[-1].isna().sum() <= 4:
+            print('---------------------------------Dropeo de uúltimo registro---------------------------------------')
+            df = df.iloc[:-1]
+
     
+    # Extraer la fecha del archivo y guardarla en una nueva columna
+    df["FECHA"] = df["FILE"].str.extract(r'REVISION (\d{1,2}-\d{1,2}-\d{2,4})')
+    df["FECHA"] = pd.to_datetime(df["FECHA"], format='%d-%m-%Y')
+    
+
     if estado == 3:
         # print(df)
         # print('------------------------------------------------------------------------')
@@ -192,6 +224,9 @@ def process_sheet(fh, sheet_name, file_name, required_columns, optional_columns,
         print('-+*-+-*-+-*-+-*-+-*-+-*-+-*-+-*-*-+-*-+-**-+-')
         # print(f'DF FINAL DEL ARCHIVO {file_name}+++++++++++++++++++++++++++++++++++')
         # print(df)
+        
+    
+    
         return df
     else: 
         print(f'No se logra leer el archivo {file_name}')
@@ -200,5 +235,6 @@ def process_sheet(fh, sheet_name, file_name, required_columns, optional_columns,
         print('-+*-+-*-+-*-+-*-+-*-+-------------------------++++++++++++++++++++++++-----------------------*-+-*-+-*-*-+-*-+-**-+-')
         return None
        
+
 
 # fetch_data_from_google_drive()
