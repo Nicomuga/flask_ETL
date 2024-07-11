@@ -23,14 +23,17 @@ folder_id = os.getenv('GOOGLE_DRIVE_FOLDER_ID')
 #     normalized = normalized.replace("Á", "A").replace("É", "E").replace("Í", "I").replace("Ó", "O").replace("Ú", "U")
 #     return normalized
 def prep_df(data):
-    required_columns = ["RESPONSABLE", "RAZON", "COMENTARIOS"]
-    for column in required_columns:
-        if column not in data.columns:
-            data[column] = None 
+    if isinstance(data, pd.Series):
+        data = data.to_frame()  # Convertir Serie a DataFrame si es necesario
+    
+    # required_columns = ["RESPONSABLE", "RAZON", "COMENTARIOS"]
+   
+    # # Llenar las columnas requeridas con None si están vacías
+    # data[required_columns] = data[required_columns].fillna(None)
             
-    for column in data.columns:
-        data[column] = data[column].apply(lambda x: str(x) if x is not None else None)
-         # Agregar la columna con valores None
+    # Aplicar lambda para convertir valores a cadenas, manteniendo None
+    data = data.map(lambda x: str(x) if x is not None else None)
+    
     return data
 
 
@@ -46,15 +49,25 @@ def normalize_columns(df):
 
 
 def normalize_value(value):
-    if isinstance(value, str):
-        return unidecode(value.strip().upper())
-    return value
+    if value is not None :    
+        return unidecode(str(value).strip().upper())
+
 
 def normalize_dataframe(df):
-    for col in df.columns:
-        df[col] = df[col].apply(normalize_value)
     df = df.where(pd.notna(df), None)
+    df = df.map(normalize_value)
+
+    if isinstance(df, pd.Series):
+        df = df.to_frame()
     return df
+
+def assign_none_to_missing_optional_columns(df, available_optional_columns):
+    # Verificar cada columna opcional y asignar None si no existe en df
+    for column in available_optional_columns:
+        if column not in df.columns:
+            df[column] = None
+    return df
+
 
 
 def fetch_data_from_google_drive():
@@ -133,23 +146,33 @@ def fetch_data_from_google_drive():
 
                 if df is not None:
                     final_df = pd.concat([final_df, df], ignore_index=True)
-                    # Liberar memoria
                 counted_entrys += len(df) 
                 file_counter += len(df)
                 folder_counter += len(df)
+
+                
                 del df
                 gc.collect()
 
             print(f'Se han contado un total de {file_counter}en el archivo {file_name}')
         print(f'Se han contado un total de {folder_counter} en la carpeta {folder["name"]}')
     print(f'Se han contado un total de {counted_entrys} entradas')
+    # final_df = normalize_dataframe(final_df)
+    # assign None if optional column is missing
+    final_df = assign_none_to_missing_optional_columns(final_df, optional_columns)
+    #Normaliza df con strip() y upper()
     final_df = normalize_dataframe(final_df)
+    final_df["FECHA"] = final_df["FILE"].str.extract(r'REVISION (\d{1,2}-\d{1,2}-\d{2,4})')
+    # breakpoint()
+    final_df["FECHA"] = pd.to_datetime(final_df["FECHA"], format='%d-%m-%Y')
     print(final_df)
-    monto_error = final_df[final_df["CAMPO_CON_ERROR"].str.contains('MONTO')]
-    otros_campos = final_df[final_df["CAMPO_CON_ERROR"].str.contains('/')]
+    monto_error = final_df.loc[final_df["CAMPO_CON_ERROR"].str.contains('MONTO')]
+    otros_campos = final_df.loc[final_df["CAMPO_CON_ERROR"].str.contains('/')]
+    breakpoint()
 
     monto_error = prep_df(monto_error)
     otros_campos = prep_df(otros_campos)
+    breakpoint()
     # column_types = final_df.dtypes
     # print(column_types)
     # breakpoint()
@@ -196,8 +219,6 @@ def process_sheet(fh, sheet_name, file_name, required_columns, optional_columns,
 
     
     # Extraer la fecha del archivo y guardarla en una nueva columna
-    df["FECHA"] = df["FILE"].str.extract(r'REVISION (\d{1,2}-\d{1,2}-\d{2,4})')
-    df["FECHA"] = pd.to_datetime(df["FECHA"], format='%d-%m-%Y')
     
 
     if estado == 3:
@@ -215,16 +236,16 @@ def process_sheet(fh, sheet_name, file_name, required_columns, optional_columns,
         df = df[selected_columns]
         df["FILE"] = file_name
         
+        
         # df = df.drop(columns=['ESTADO_OK/NOK'])
         # print(df)
-        normalize_dataframe(df)
-        df = df[df['ESTADO_OK/NOK'] == 'NOK']
+        df = df.loc[df['ESTADO_OK/NOK'] == 'NOK']
         print(f'Archivo {file_name} leído exitosamente DESDE {sheet_name}')
         print(f'contiene {len(df)} entradas')
         print('-+*-+-*-+-*-+-*-+-*-+-*-+-*-+-*-*-+-*-+-**-+-')
         # print(f'DF FINAL DEL ARCHIVO {file_name}+++++++++++++++++++++++++++++++++++')
         # print(df)
-        
+        # breakpoint()
     
     
         return df

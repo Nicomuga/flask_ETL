@@ -19,7 +19,7 @@ def index():
 @main.route('/fetch', methods=['GET'])
 def fetch_data():
     
-    data = fetch_data_from_google_drive()
+    # data = fetch_data_from_google_drive()
     monto_error, otros_campos = fetch_data_from_google_drive()
     
     
@@ -40,7 +40,7 @@ def fetch_data():
             fecha_rev=row["FECHA"]
             
         )  
-        print(f'+++++++++++++++++++++++---------ENTRY{row["FOLIO_RECEPCION"]}---------++++++++++++++++++++++++')
+        print(f'+++++++++++++++++++++++--------- CAMPO_ERROR    ENTRY{row["FOLIO_RECEPCION"]}---------++++++++++++++++++++++++')
         db.session.add(entry)
     db.session.commit()
 
@@ -54,9 +54,9 @@ def fetch_data():
             razon=row["RAZON"],
             comentarios=row["COMENTARIOS"],
             fecha_rev=row["FECHA"],
-            file=row["FILE"],
+            file=row["FILE"]
         )  
-        print(f'+++++++++++++++++++++++---------DATABASE ENTRY FOLIO: {row["FOLIO_RECEPCION"]}---------++++++++++++++++++++++++')
+        print(f'+++++++++++++++++++++++---------OTROS_CAMPOS     ENTRY FOLIO: {row["FOLIO_RECEPCION"]}---------++++++++++++++++++++++++')
         db.session.add(entry)
     db.session.commit()
 

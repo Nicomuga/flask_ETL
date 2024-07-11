@@ -1,8 +1,134 @@
-Flask
-Flask-SQLAlchemy
-Flask-Migrate
-psycopg2-binary
-python-dotenv
-pandas
-Office365-REST-Python-Client
-Office365
+aenum==3.1.15
+alembic==1.13.1
+appdirs==1.4.4
+APScheduler==3.10.4
+asttokens==2.4.1
+azure-core==1.30.2
+azure-storage-blob==12.20.0
+beautifulsoup4==4.12.3
+blinker==1.8.2
+Bottleneck @ file:///C:/b/abs_f7un855idq/croot/bottleneck_1709069969633/work
+bs4==0.0.2
+cachetools==5.3.3
+case_conversion==2.1.0
+certifi==2024.6.2
+cffi==1.16.0
+chardet==5.2.0
+charset-normalizer==3.3.2
+click==8.1.7
+clipboard==0.0.4
+colorama==0.4.6
+colour==0.1.5
+cryptography==42.0.8
+cursor==1.3.5
+decorator==4.4.2
+dill==0.3.8
+et-xmlfile @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/et_xmlfile_1699500373144/work
+executing==2.0.1
+Flask==3.0.3
+Flask-Migrate==4.0.7
+Flask-SQLAlchemy==3.1.1
+fuzzywuzzy==0.18.0
+gender-guesser==0.4.0
+google-api-core==2.19.0
+google-api-python-client==2.133.0
+google-auth==2.30.0
+google-auth-httplib2==0.2.0
+google-auth-oauthlib==1.2.0
+googleapis-common-protos==1.63.1
+greenlet==3.0.3
+html_text==0.6.2
+httplib2==0.22.0
+idna==3.7
+imageio==2.34.1
+imageio-ffmpeg==0.5.1
+infi.systray==0.1.12
+inflect==7.2.1
+ipdb==0.13.13
+ipython==8.26.0
+isodate==0.6.1
+itsdangerous==2.2.0
+jedi==0.19.1
+Jinja2==3.1.4
+lxml==5.2.2
+lxml_html_clean==0.1.1
+Mako==1.3.5
+MarkupSafe==2.1.5
+matplotlib-inline==0.1.7
+maybe-else==0.2.1
+mbstrdecoder==1.1.3
+mkl-fft @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/mkl_fft_1699473528480/work
+mkl-random @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/mkl_random_1699473588250/work
+mkl-service==2.4.0
+more-itertools==10.3.0
+moviepy==1.0.3
+msal==1.28.1
+msoffcrypto-tool==5.4.1
+numexpr @ file:///C:/Users/dev-admin/perseverance-python-buildout/croot/numexpr_1699503421264/work
+numpy @ file:///C:/b/abs_c1ywpu18ar/croot/numpy_and_numpy_base_1708638681471/work/dist/numpy-1.26.4-cp312-cp312-win_amd64.whl#sha256=becc06674317799ad0165a939a7613809d0bee9bd328a1e4308c57c39cacf08c
+O365==2.0.35
+oauthlib==3.2.2
+office365==0.3.15
+Office365-REST-Python-Client==2.5.10
+olefile==0.47
+openpyxl @ file:///C:/b/abs_764brjadj1/croot/openpyxl_1714158895873/work
+pandas @ file:///C:/b/abs_9aotnvvz16/croot/pandas_1718308978393/work/dist/pandas-2.2.2-cp312-cp312-win_amd64.whl#sha256=93959056e02e9855025011adb18394296a58d49e72b9342733b7693a5267c790
+parsedatetime==2.6
+parso==0.8.4
+pathmagic==0.3.14
+pillow==10.3.0
+prettierfier==1.0.3
+proglog==0.1.10
+prompt_toolkit==3.0.47
+proto-plus==1.24.0
+protobuf==4.25.3
+psycopg2-binary==2.9.9
+pure-eval==0.2.2
+pyasn1==0.6.0
+pyasn1_modules==0.4.0
+pycparser==2.22
+pydub==0.25.1
+Pygments==2.18.0
+pyinstrument==4.6.2
+pyiotools==0.3.18
+PyJWT==2.8.0
+pymiscutils==0.3.14
+pyparsing==3.1.2
+PyPDF2==3.0.1
+pyperclip==1.8.2
+PyQt5==5.15.10
+PyQt5-Qt5==5.15.2
+PyQt5-sip==12.13.0
+pysubtypes==0.3.18
+python-dateutil @ file:///C:/b/abs_3au_koqnbs/croot/python-dateutil_1716495777160/work
+python-docx==1.1.2
+python-dotenv==1.0.1
+pytz @ file:///C:/b/abs_6ap4tsz1ox/croot/pytz_1713974360290/work
+readchar==4.1.0
+regex==2024.5.15
+requests==2.32.3
+requests-oauthlib==2.0.0
+rsa==4.9
+Send2Trash==1.8.3
+setuptools==69.5.1
+simplejson==3.19.2
+six @ file:///tmp/build/80754af9/six_1644875935023/work
+soupsieve==2.5
+SQLAlchemy==2.0.30
+stack-data==0.6.3
+stringcase==1.2.0
+tabulate==0.9.0
+tqdm==4.66.4
+traitlets==5.14.3
+typeguard==4.3.0
+typepy==1.3.2
+typing_extensions==4.12.2
+tzdata @ file:///croot/python-tzdata_1690578112552/work
+tzlocal==5.2
+Unidecode @ file:///tmp/build/80754af9/unidecode_1614712377438/work
+uritemplate==4.1.1
+urllib3==2.2.1
+wcwidth==0.2.13
+Werkzeug==3.0.3
+wheel==0.43.0
+XlsxWriter==3.2.0
