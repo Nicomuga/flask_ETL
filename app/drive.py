@@ -72,90 +72,103 @@ def assign_none_to_missing_optional_columns(df, available_optional_columns):
 
 def fetch_data_from_google_drive():
     # Autenticar con la API de Google Drive
-    flow = InstalledAppFlow.from_client_secrets_file(credentials_file, ['https://www.googleapis.com/auth/drive'])
-    creds = flow.run_local_server(port=0)
-    service = build('drive', 'v3', credentials=creds)
-
-    # Obtener la lista de archivos en el directorio base
-    results = service.files().list(q=f"'{folder_id}' in parents").execute()
-    items = results.get('files', [])
-    print(items)
-
-    folders = service.files().list(
-    q=f"'{folder_id}' in parents and mimeType='application/vnd.google-apps.folder'",
-    spaces='drive',
-    fields='nextPageToken, files(id, name)').execute()
-    print(folders)
     re_columns = [
                     "FOLIO RECEPCION", "CAMPO CON ERROR", "DEBE DECIR OTROS CAMPOS", 
                     "FALTA SACAR DEDUCIBLE", "SACO DEDUCIBLE ERRONEO (NO DEDUCIBLE)", "ESTADO OK/NOK", "MES"]
     op_columns = ["RESPONSABLE", "RAZON", "COMENTARIOS"]
     required_columns = [normalize_column_name(col) for col in re_columns]
     optional_columns = [normalize_column_name(col) for col in op_columns]
-    
-    # Lista para almacenar los DataFrames
-    final_df = pd.DataFrame()
     # Iterar a través de cada carpeta
     counted_items = 0
     counted_entrys = 0
+
+
+    flow = InstalledAppFlow.from_client_secrets_file(credentials_file, ['https://www.googleapis.com/auth/drive'])
+    creds = flow.run_local_server(port=0)
+    service = build('drive', 'v3', credentials=creds)
+
+    # # Obtener la lista de archivos en el directorio base
+    # results = service.files().list(q=f"'{folder_id}' in parents").execute()
+    # items = results.get('files', [])
+    # print(items)
+
+    folders = service.files().list(
+    q=f"'{folder_id}' in parents and mimeType='application/vnd.google-apps.folder'",
+    spaces='drive',
+    fields='nextPageToken, files(id, name)').execute()
+    print(folders)
+    
+    # Lista para almacenar los DataFrames
+    final_df = pd.DataFrame()
     
     for folder in folders.get('files', []):
         # Obtener la lista de archivos en la carpeta actual
-        items = service.files().list(q="'{0}' in parents".format(folder['id']),
+        months = service.files().list(q="'{0}' in parents".format(folder['id']),
                                     spaces='drive',
                                     fields='nextPageToken, files(id, name)').execute().get('files', [])
-        print(items)
-        print(len(items))
-        dfs = []
-        counted_items += len(items)
+        
         folder_counter = 0
         item_counter = 0
-        print('+++++++++++++++++++++++----------folder---------++++++++++++++++++++++++')
+        print(f'+++++++++++++++++++++++----------{folder['name']}---------++++++++++++++++++++++++')
         print('+++++++++++++++++++++++-------------------++++++++++++++++++++++++')
         print('+++++++++++++++++++++++-------------------++++++++++++++++++++++++')
         # Iterar a través de cada archivo
         
-        for item in items:
-            file_id = item['id']
-            file_name = item['name']
-            print(f'procesando {file_name}')
-            item_counter += 1
-            file_counter = 0
-            print(f'Archivo N° {item_counter} de {len(items)}')
-            if file_name.endswith('.xlsx'):
-                request = service.files().get_media(fileId=file_id)
-                fh = io.BytesIO()
-                downloader = MediaIoBaseDownload(fh, request)
-                done = False
-                while done is False:
-                    status, done = downloader.next_chunk()
-                fh.seek(0)
+        for month in months:
+            items = service.files().list(q="'{0}' in parents".format(month['id']),
+                                    spaces='drive',
+                                    fields='nextPageToken, files(id, name)').execute().get('files', [])
+            print(f'+++++++++++++++++++++++----------items---------++++++++++++++++++++++++')
+            print(items)
+            print(len(items))
+            counted_items += len(items)
+            
+            for item in items:
+                file_id = item['id']
+                file_name = item['name']
+                print(f'procesando {file_name}')
+                item_counter += 1
+                file_counter = 0
+                print(f'Archivo N° {item_counter} de {len(items)}')
+                if file_name.endswith('.xlsx'):
+                    request = service.files().get_media(fileId=file_id)
+                    fh = io.BytesIO()
+                    downloader = MediaIoBaseDownload(fh, request)
+                    done = False
+                    while done is False:
+                        status, done = downloader.next_chunk()
+                    fh.seek(0)
 
-                # if 'Sheet1' in excel_file.sheet_names:
-                #     # Cargar la hoja 'Sheet1' en un DataFrame
-                #     df_sheet1 = excel_file.parse('Sheet1')
+                    # if 'Sheet1' in excel_file.sheet_names:
+                    #     # Cargar la hoja 'Sheet1' en un DataFrame
+                    #     df_sheet1 = excel_file.parse('Sheet1')
 
-                sheets_fh = pd.ExcelFile(fh).sheet_names
-                upper_fh = [sheet.upper() for sheet in sheets_fh]
-                
-                if 'NOK' in upper_fh:
-                    df = process_sheet(fh, 'NOK', file_name, required_columns, optional_columns, usecols=range(21))
+                    sheets_fh = pd.ExcelFile(fh).sheet_names
+                    sheets_fh_sorted = sorted(sheets_fh, key=len)
+                    upper_fh = [sheet.upper() for sheet in sheets_fh]
                     
-                else:
-                    df = process_sheet(fh, 'RENTAS', file_name, required_columns, optional_columns, usecols=None)
+                    nok_sheet = next((sheet for sheet in sheets_fh if 'NOK' in sheet.upper()), None)
+                    rentas_sheet = next((sheet for sheet in sheets_fh_sorted if sheet.upper() == 'RENTAS' or 'RENTAS' in sheet.upper()), None)
 
-                if df is not None:
-                    final_df = pd.concat([final_df, df], ignore_index=True)
-                counted_entrys += len(df) 
-                file_counter += len(df)
-                folder_counter += len(df)
+                    if nok_sheet:
+                        df = process_sheet(fh, nok_sheet, file_name, required_columns, optional_columns, usecols=range(21))
+                    else:
+                        df = process_sheet(fh, rentas_sheet, file_name, required_columns, optional_columns, usecols=None)
+                    
 
-                
-                del df
-                gc.collect()
+                    if df is not None:
+                        final_df = pd.concat([final_df, df], ignore_index=True)
+                    counted_entrys += len(df) 
+                    file_counter += len(df)
+                    folder_counter += len(df)
 
-            print(f'Se han contado un total de {file_counter}en el archivo {file_name}')
-        print(f'Se han contado un total de {folder_counter} en la carpeta {folder["name"]}')
+                    
+                    del df
+                    gc.collect()
+
+                print(f'Se han contado un total de {file_counter}en el archivo {file_name}')
+            print(f'Se han contado un total de {folder_counter} en la carpeta {folder["name"]}')
+        print(f"se proceso el {month['name']} del año {folder['name']}")    
     print(f'Se han contado un total de {counted_entrys} entradas')
     # final_df = normalize_dataframe(final_df)
     # assign None if optional column is missing
@@ -192,8 +205,9 @@ def process_sheet(fh, sheet_name, file_name, required_columns, optional_columns,
             unnamed_count = count_unnamed_columns(df.columns)
             print(f'+++++++++dropeo de linea N° {try_counter}+++++++++++++')
         estado = 3
+        print(estado)
     except:
-        if sheet_name == 'NOK':
+        if sheet_name :
             df = pd.DataFrame(pd.ExcelFile(fh).parse('RENTAS'))
             print(f'PROCESANDO DF ORIGINAL DESDE RENTAS ++++++++++++++++')
             unnamed_count = count_unnamed_columns(df.columns)
@@ -212,10 +226,9 @@ def process_sheet(fh, sheet_name, file_name, required_columns, optional_columns,
     # breakpoint()
 
     # if theres a sum at the end of the df it will be dropped 
-    while not df.empty and df.iloc[-1].isna().sum() > 4:
-        if df.iloc[-1].isna().sum() <= 4:
-            print('---------------------------------Dropeo de uúltimo registro---------------------------------------')
-            df = df.iloc[:-1]
+    while not df.empty and df.iloc[-1].isna().sum() > 8:
+        print('---------------------------------Dropeo de último registro---------------------------------------')
+        df = df.iloc[:-1]
 
     
     # Extraer la fecha del archivo y guardarla en una nueva columna
@@ -258,4 +271,4 @@ def process_sheet(fh, sheet_name, file_name, required_columns, optional_columns,
        
 
 
-# fetch_data_from_google_drive()
+fetch_data_from_google_drive()
